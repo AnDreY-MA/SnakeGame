@@ -16,9 +16,9 @@ Grid::Grid(const Dim& dim) //
 
 void Grid::initWalls()
 {
-    for (int32 y = 0; y < c_dim.height; ++y)
+    for (uint32 y = 0; y < c_dim.height; ++y)
     {
-        for (int32 x = 0; x < c_dim.width; ++x)
+        for (uint32 x = 0; x < c_dim.width; ++x)
         {
             if (x == 0 || x == c_dim.width -1|| y == 0 || y == c_dim.height-1)
             {
@@ -31,10 +31,10 @@ void Grid::initWalls()
 void Grid::printDebug()
 {
 #if !UE_BUILD_SHIPPING
-    for (int32 y = 0; y < c_dim.height; ++y)
+    for (uint32 y = 0; y < c_dim.height; ++y)
     {
         FString line;
-        for (int32 x = 0; x < c_dim.width; ++x)
+        for (uint32 x = 0; x < c_dim.width; ++x)
         {
             TCHAR symbol {};
             switch (m_cells[posToIndex(x, y)])
@@ -49,7 +49,7 @@ void Grid::printDebug()
 #endif
 }
 
-int32 Grid::posToIndex(const int32 x, const int32 y) const
+uint32 Grid::posToIndex(const uint32 x, const uint32 y) const
 {
     return x + y * c_dim.width;
 }

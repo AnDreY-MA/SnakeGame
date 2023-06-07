@@ -18,7 +18,7 @@ public:
 	// Sets default values for this pawn's properties
 	ASG_Pawn();
 
-    void UpdateLocation(const SnakeGame::Dim& InDim, int32 InCellSize, const FTransform& InGridOrigin);
+    void UpdateLocation(const SnakeGame::Dim& InDim, uint32 InCellSize, const FTransform& InGridOrigin);
     
 protected:
     UPROPERTY(VisibleAnywhere)
@@ -29,7 +29,7 @@ protected:
 
 private:
     SnakeGame::Dim Dim;
-    int32 CellSize;
+    uint32 CellSize;
     FTransform GridOrigin;
     FDelegateHandle ResizeHandle;
 

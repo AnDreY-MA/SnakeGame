@@ -20,6 +20,6 @@ private:
 
     void initWalls();
     void printDebug();
-    FORCEINLINE int32 posToIndex(const int32 x, const int32 y) const;
+    FORCEINLINE uint32 posToIndex(const uint32 x, const uint32 y) const;
 };
 }
