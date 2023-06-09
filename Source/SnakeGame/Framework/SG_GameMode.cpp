@@ -11,7 +11,15 @@
 #include "Engine/ExponentialHeightFog.h"
 #include "Kismet/GameplayStatics.h"
 #include "World/SG_Grid.h"
+#include "World/SG_Snake.h"
 #include "World/SG_WorldTypes.h"
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+
+ASG_GameMode::ASG_GameMode()
+{
+    PrimaryActorTick.bCanEverTick = true;
+}
 
 void ASG_GameMode::StartPlay()
 {
@@ -20,10 +28,23 @@ void ASG_GameMode::StartPlay()
     SetupGame();
     SetupGrid();
     SetupPawn();
+    SetupSnake();
 
     FindFog();
     UpdateColors();
+
+    SetupInput();
     
+}
+
+void ASG_GameMode::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    if(Game)
+    {
+        Game->update(DeltaSeconds, SnakeInput);
+    }
 }
 
 void ASG_GameMode::NextColor()
@@ -36,8 +57,7 @@ void ASG_GameMode::NextColor()
 
 void ASG_GameMode::SetupGame()
 {
-    SnakeGame::Settings GS {GridDims.X, GridDims.Y};
-    Game = MakeUnique<SnakeGame::Game>(GS);
+    Game = MakeUnique<SnakeGame::Game>(MakeSettings());
     
 }
 
@@ -61,6 +81,30 @@ void ASG_GameMode::SetupPawn() const
     
 }
 
+void ASG_GameMode::SetupSnake()
+{
+    SnakeVisual = GetWorld()->SpawnActorDeferred<ASG_Snake>(SnakeVisualClass, FTransform::Identity);
+    SnakeVisual->SetModel(Game->getSnake(), CellSize, Game->getGrid()->getDim());
+    SnakeVisual->FinishSpawning(FTransform::Identity);
+}
+
+void ASG_GameMode::SetupInput()
+{
+    if(auto* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController()))
+    {
+        if(auto* InputSystem = PC->GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+        {
+            InputSystem->AddMappingContext(InputMappingContext, 0);
+        }
+
+        auto* Input = Cast<UEnhancedInputComponent>(PC->InputComponent);
+        check(Input);
+        Input->BindAction(MoveForwardInputAction, ETriggerEvent::Triggered, this, &ThisClass::OnMoveForward);
+        Input->BindAction(MoveRightInputAction, ETriggerEvent::Triggered, this, &ThisClass::OnMoveRight);
+        Input->BindAction(ResetGameInputAction, ETriggerEvent::Started, this, &ThisClass::OnGameReset);
+    }
+}
+
 void ASG_GameMode::FindFog()
 {
     TArray<AActor*> Fogs;
@@ -80,6 +124,8 @@ void ASG_GameMode::UpdateColors()
 
     GridVisual->UpdateColors(*ColorSet);
 
+    SnakeVisual->UpdateColors(*ColorSet);
+
     if(Fog && Fog->GetComponent())
     {
         Fog->GetComponent()->SkyAtmosphereAmbientContributionColorScale =
@@ -87,4 +133,41 @@ void ASG_GameMode::UpdateColors()
         Fog->MarkComponentsRenderStateDirty();
     }
 
+}
+
+void ASG_GameMode::OnMoveForward(const FInputActionValue& Value)
+{
+    const FVector2D InputValue = Value.Get<FVector2D>();
+    if(InputValue.X == 0.0) return;
+    SnakeInput = SnakeGame::Input{0,static_cast<int8>(InputValue.X)};
+}
+
+void ASG_GameMode::OnMoveRight(const FInputActionValue& Value)
+{
+    const FVector2D InputValue = Value.Get<FVector2D>();
+    if(InputValue.X == 0.0) return;
+    SnakeInput = SnakeGame::Input{static_cast<int8>(InputValue.X), 0};
+}
+
+void ASG_GameMode::OnGameReset(const FInputActionValue& Value)
+{
+    if(const bool InputValue = Value.Get<bool>())
+    {
+        Game.Reset(new SnakeGame::Game(MakeSettings()));
+        GridVisual->SetModel(Game->getGrid(), CellSize);
+        SnakeVisual->SetModel(Game->getSnake(), CellSize, Game->getGrid()->getDim());
+        SnakeInput = SnakeGame::Input{1, 0};
+    }
+    
+}
+
+SnakeGame::Settings ASG_GameMode::MakeSettings() const
+{
+    SnakeGame::Settings GS;
+    GS.gridDims = SnakeGame::Dim {GridDims.X, GridDims.Y};
+    GS.gameSpeed = GameSpeed;
+    GS.snake.defaultSize = SnakeDefaultSize;
+    GS.snake.startPosition = SnakeGame::Position(GridDims.X / 2, GridDims.Y / 2);
+
+    return GS;
 }

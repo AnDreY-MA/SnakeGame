@@ -8,6 +8,7 @@
 namespace SnakeGame
 {
 class Grid;
+class Snake;
 
 class Game
 {
@@ -15,10 +16,22 @@ public:
     Game(const Settings& settings);
 
     TSharedPtr<Grid> getGrid() const { return m_grid; }
+    TSharedPtr<Snake> getSnake() const { return m_snake; }
+    
+    void update(const float deltaSeconds, const Input& input);
 
 private:
     const Settings c_settings;
     TSharedPtr<Grid> m_grid;
+    TSharedPtr<Snake> m_snake;
+
+    float m_moveSeconds{0.0f};
+    bool m_gameOver{false};
+
+    void updateGrid();
+    bool updateTime(float deltaSeconds);
+    bool died() const;
+
 };
 }
 

@@ -36,7 +36,7 @@ void ASG_Grid::BeginPlay()
 
 void ASG_Grid::SetModel(const TSharedPtr<SnakeGame::Grid>& Grid, uint32 InCellSize)
 {
-    GridDim = Grid.Get()->getDim();
+    GridDim = Grid->getDim();
     CellSize = InCellSize;
     WorldWidth = GridDim.width * CellSize;
     WorldHeight = GridDim.height * CellSize;
