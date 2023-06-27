@@ -3,6 +3,8 @@
 
 #include "SG_SnakeLink.h"
 
+#include "SG_WorldUtils.h"
+
 ASG_SnakeLink::ASG_SnakeLink()
 {
     PrimaryActorTick.bCanEverTick = false;
@@ -25,10 +27,7 @@ void ASG_SnakeLink::UpdateColors(const FLinearColor& Color)
 
 void ASG_SnakeLink::UpdateScale(uint32 CellSize)
 {
-    const FBox Box = LinkMesh->GetStaticMesh()->GetBoundingBox();
-    const auto Size = Box.GetSize();
-
-    LinkMesh->SetRelativeScale3D(FVector(CellSize / Size.X, CellSize / Size.Y, CellSize / Size.Z));
+    SnakeGame::WorldUtils::ScaleMesh(LinkMesh, FVector(CellSize));
 }
 
 

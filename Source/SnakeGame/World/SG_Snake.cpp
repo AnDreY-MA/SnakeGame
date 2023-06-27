@@ -3,14 +3,8 @@
 
 #include "SG_Snake.h"
 #include "SG_SnakeLink.h"
+#include "SG_WorldUtils.h"
 
-namespace 
-{
-    FVector LinkPositionToVector(const SnakeGame::Position& Position, uint32 CellSize, const SnakeGame::Dim& Dim)
-    {
-        return FVector((Dim.height - 1 - Position.y) * CellSize, Position.x * CellSize, 0.0) + FVector(CellSize * 0.5);
-    }
-}
 
 ASG_Snake::ASG_Snake()
 {
@@ -23,6 +17,14 @@ void ASG_Snake::SetModel(const TSharedPtr<SnakeGame::Snake>& InSnake, uint32 InC
     Snake = InSnake;
     CellSize = InCellSize;
     Dims = InDims;
+
+    for(auto* LinkActor : SnakeLinks)
+    {
+        LinkActor->Destroy();
+    }
+    SnakeLinks.Empty();
+    
+    SpawnLink();
 }
 
 void ASG_Snake::UpdateColors(const FSnakeColors& Colors)
@@ -39,7 +41,7 @@ void ASG_Snake::BeginPlay()
 
     if(!Snake.IsValid()) return;
     
-    SpawnLink();
+    //SpawnLink();
 }
 
 void ASG_Snake::SpawnLink()
@@ -50,7 +52,7 @@ void ASG_Snake::SpawnLink()
     for(const auto& Link : Links)
     {
         const bool IsHead = i == 0;
-        const FTransform Transform = FTransform(LinkPositionToVector(Link, CellSize, Dims));
+        const FTransform Transform = FTransform(SnakeGame::WorldUtils::LinkPositionToVector(Link, CellSize, Dims));
         auto* LinkActor = GetWorld()->SpawnActorDeferred<ASG_SnakeLink>(IsHead ? SnakeHeadClass : SnakeLinkClass, Transform);
         LinkActor->UpdateScale(CellSize);
         LinkActor->FinishSpawning(Transform);
@@ -69,7 +71,17 @@ void ASG_Snake::Tick(float DeltaTime)
     auto* LinkPtr = Links.GetHead();
     for(auto* LinkActor : SnakeLinks)
     {
-        LinkActor->SetActorLocation(LinkPositionToVector(LinkPtr->GetValue(), CellSize, Dims));
+        LinkActor->SetActorLocation(SnakeGame::WorldUtils::LinkPositionToVector(LinkPtr->GetValue(), CellSize, Dims));
+        LinkPtr = LinkPtr->GetNextNode();
+    }
+
+    while(LinkPtr)
+    {
+        const FTransform Transform = FTransform(SnakeGame::WorldUtils::LinkPositionToVector(LinkPtr->GetValue(), CellSize, Dims));
+        auto* LinkActor = GetWorld()->SpawnActorDeferred<ASG_SnakeLink>(SnakeLinkClass, Transform);
+        LinkActor->UpdateScale(CellSize);
+        LinkActor->FinishSpawning(Transform);
+        SnakeLinks.Add(LinkActor);
         LinkPtr = LinkPtr->GetNextNode();
     }
 

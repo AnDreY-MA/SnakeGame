@@ -25,6 +25,13 @@ struct Position
 
         return *this;
     }
+
+    FORCEINLINE bool operator==(const Position& rhs) const
+    {
+        return x == rhs.x && y == rhs.y;
+    }
+
+    static Position Zero;
     
 };
 
@@ -37,13 +44,16 @@ struct Input
     {
         return (x == -rhs.x && x != 0) || (y == -rhs.y && y != 0);
     }
+
+    static Input Default;
 };
 
 enum class CellType
 {
     Empty = 0,
     Wall,
-    Snake
+    Snake,
+    Food
 };
 
 struct Settings
@@ -59,7 +69,7 @@ struct Settings
 
 using TPositionPtr = TDoubleLinkedList<Position>::TDoubleLinkedListNode;
 
-class TSnakeList : TDoubleLinkedList<Position>
+class TSnakeList : public TDoubleLinkedList<Position>
 {
 public:
     void MoveTail(TPositionPtr* tail, TPositionPtr* head, const Position& pos)

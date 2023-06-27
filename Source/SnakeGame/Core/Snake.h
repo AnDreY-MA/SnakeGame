@@ -15,12 +15,12 @@ public:
 
     const TSnakeList& links() const { return m_links; }
     Position head() const { return m_links.GetHead()->GetValue(); }
-    TPositionPtr* body() const { return m_links.GetHead()->GetNextNode(); }
     void move(const Input& Input);
+    void increase();
 
 private:
     TSnakeList m_links;
-    Input m_lastInput{1, 0};
+    Input m_lastInput{Input::Default};
 };
 
 }

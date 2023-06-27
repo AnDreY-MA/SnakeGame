@@ -46,6 +46,7 @@ void Grid::printDebug()
                 case CellType::Empty: symbol='0'; break;
                 case CellType::Wall: symbol='*'; break;
                 case CellType::Snake: symbol='_'; break;
+                case CellType::Food: symbol='F'; break;
             }
             line.AppendChar(symbol).AppendChar(' ');
         }
@@ -63,6 +64,35 @@ void Grid::update(const TPositionPtr* links, CellType cellType)
         updateInternal(link->GetValue(), cellType);
         link = link->GetNextNode();
     }
+}
+
+void Grid::update(const Position& position, CellType cellType)
+{
+    freeCellsByType(cellType);
+    updateInternal(position, cellType);
+}
+
+bool Grid::randomEmptyPosition(Position& position) const
+{
+    const auto gridSize = c_dim.width * c_dim.height;
+    const uint32 index = FMath::RandRange(0, gridSize - 1);
+    for(uint32 i = index; i < gridSize; i++)
+    {
+        if(m_cells[i] == CellType::Empty)
+        {
+            position = indexToPos(i);
+            return true;
+        }
+    }
+    for(uint32 i = index; i < index; i++)
+    {
+        if(m_cells[i] == CellType::Empty)
+        {
+            position = indexToPos(i);
+            return true;
+        }
+    }
+    return false;
 }
 
 void Grid::updateInternal(const Position& position, CellType cellType)
@@ -96,4 +126,9 @@ uint32 Grid::posToIndex(const uint32 x, const uint32 y) const
 uint32 Grid::posToIndex(const Position& pos) const
 {
     return posToIndex(pos.x, pos.y);
+}
+
+Position Grid::indexToPos(const uint32 index) const
+{
+    return Position(index % c_dim.width, index / c_dim.width);
 }
