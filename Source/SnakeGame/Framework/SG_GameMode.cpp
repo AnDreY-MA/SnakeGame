@@ -17,6 +17,8 @@
 #include "EnhancedInputComponent.h"
 #include "World/SG_Food.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogSnakeGameMode, All, All);
+
 ASG_GameMode::ASG_GameMode()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -25,6 +27,8 @@ ASG_GameMode::ASG_GameMode()
 void ASG_GameMode::StartPlay()
 {
     Super::StartPlay();
+
+    SubscribeOnGameEvents();
 
     SetupGame();
     SetupGrid();
@@ -164,6 +168,7 @@ void ASG_GameMode::OnGameReset(const FInputActionValue& Value)
     if(const bool InputValue = Value.Get<bool>())
     {
         Game.Reset(new SnakeGame::Game(MakeSettings()));
+        SubscribeOnGameEvents();
         GridVisual->SetModel(Game->getGrid(), CellSize);
         SnakeVisual->SetModel(Game->getSnake(), CellSize, Game->getGrid()->getDim());
         FoodVisual->SetModel(Game->getFood(), CellSize, Game->getGrid()->getDim());
@@ -182,4 +187,28 @@ SnakeGame::Settings ASG_GameMode::MakeSettings() const
         //SnakeGame::Position(GridDims.X / 2, GridDims.Y / 2);
 
     return GS;
+}
+
+void ASG_GameMode::SubscribeOnGameEvents()
+{
+    using namespace SnakeGame;
+
+    Game->subscribeOnGameplayEvent([&](GameplayEvent Event)
+    {
+        switch (Event)
+        {
+            case GameplayEvent::CameOver:
+                UE_LOG(LogSnakeGameMode, Display, TEXT("--------GAME OVER--------"));
+                UE_LOG(LogSnakeGameMode, Display, TEXT("--------SCORE: %i--------"), Game->getScore());
+                SnakeVisual->Explode();
+                break;
+            case GameplayEvent::GameCompleted:
+                UE_LOG(LogSnakeGameMode, Display, TEXT("--------GAME COMPLETED--------"));
+                UE_LOG(LogSnakeGameMode, Display, TEXT("--------SCORE: %i--------"), Game->getScore());
+                break;
+            case GameplayEvent::FoodTaken:
+                FoodVisual->Explode();
+                break;
+        }
+    });
 }

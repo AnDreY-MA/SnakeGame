@@ -99,4 +99,7 @@ private:
     void OnGameReset(const FInputActionValue& Value);
 
     SnakeGame::Settings MakeSettings() const;
+    
+    void SubscribeOnGameEvents();
+    
 };

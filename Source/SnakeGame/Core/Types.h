@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Types.h"
+#include "Types.h"
 #include "Containers/List.h"
 
 namespace SnakeGame
@@ -78,5 +80,14 @@ public:
         InsertNode(pos, head->GetNextNode());
     }
 };
+
+enum class GameplayEvent
+{
+    CameOver = 0,
+    GameCompleted,
+    FoodTaken
+};
+
+using GameplayEventCallback = TFunction<void(GameplayEvent)>;
 
 }

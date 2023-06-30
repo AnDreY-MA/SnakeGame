@@ -12,10 +12,10 @@ DEFINE_LOG_CATEGORY_STATIC(LogGame, All, All);
 
 using namespace SnakeGame;
 
-Game::Game(const Settings& settings) //
+Game::Game(const Settings& settings, const TSharedPtr<IPositionRandomizer>& randomizer) //
     : c_settings(settings)
 {
-    m_grid = MakeShared<Grid>(settings.gridDims);
+    m_grid = MakeShared<Grid>(settings.gridDims, randomizer);
     m_snake = MakeShared<Snake>(settings.snake);
     m_food = MakeShared<Food>();
 
@@ -32,7 +32,7 @@ void Game::update(const float deltaSeconds, const Input& input)
     if(died())
     {
         m_gameOver = true;
-        UE_LOG(LogGame, Display, TEXT("--------GAME OVER--------"));
+
         return;
     }
     //updateGrid();
@@ -41,6 +41,7 @@ void Game::update(const float deltaSeconds, const Input& input)
     {
         ++m_score;
         m_snake->increase();
+        m_gameplayEventCallback(GameplayEvent::FoodTaken);
         generateFood();
     }
 
@@ -78,7 +79,8 @@ void Game::generateFood()
     else
     {
         m_gameOver = true;
-        UE_LOG(LogGame, Display, TEXT("--------GAME COMPLETED--------"));
+        m_gameplayEventCallback(GameplayEvent::GameCompleted);
+        //UE_LOG(LogGame, Display, TEXT("--------GAME COMPLETED--------"));
     }
     
 }
@@ -86,4 +88,15 @@ void Game::generateFood()
 bool Game::foodTaken() const
 {
     return m_grid->hitTest(m_snake->head(), CellType::Snake);
+}
+
+void Game::dispatchEvent(GameplayEvent Event)
+{
+    m_gameplayEventCallback(Event);
+
+}
+
+void Game::subscribeOnGameplayEvent(GameplayEventCallback callback)
+{
+    m_gameplayEventCallback = callback;
 }

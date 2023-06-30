@@ -35,6 +35,14 @@ void ASG_Snake::UpdateColors(const FSnakeColors& Colors)
     }
 }
 
+void ASG_Snake::Explode()
+{
+    for (auto* LinkActor : SnakeLinks)
+    {
+        LinkActor->Explode();
+    }
+}
+
 void ASG_Snake::BeginPlay()
 {
     Super::BeginPlay();

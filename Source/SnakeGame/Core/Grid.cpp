@@ -6,8 +6,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogGrid, All, All);
 
 using namespace SnakeGame;
 
-Grid::Grid(const Dim& dim) //
-    : c_dim(Dim{dim.width + 2, dim.height + 2})
+Grid::Grid(const Dim& dim, const TSharedPtr<IPositionRandomizer>& randomizer) //
+    : c_dim(Dim{dim.width + 2, dim.height + 2}), m_positionRandomizer(randomizer)
 {
     m_cells.Init(CellType::Empty, c_dim.height * c_dim.width);
     initWalls();
@@ -74,25 +74,7 @@ void Grid::update(const Position& position, CellType cellType)
 
 bool Grid::randomEmptyPosition(Position& position) const
 {
-    const auto gridSize = c_dim.width * c_dim.height;
-    const uint32 index = FMath::RandRange(0, gridSize - 1);
-    for(uint32 i = index; i < gridSize; i++)
-    {
-        if(m_cells[i] == CellType::Empty)
-        {
-            position = indexToPos(i);
-            return true;
-        }
-    }
-    for(uint32 i = index; i < index; i++)
-    {
-        if(m_cells[i] == CellType::Empty)
-        {
-            position = indexToPos(i);
-            return true;
-        }
-    }
-    return false;
+    return m_positionRandomizer->generatePosition(c_dim, m_cells, position);
 }
 
 void Grid::updateInternal(const Position& position, CellType cellType)
@@ -126,9 +108,4 @@ uint32 Grid::posToIndex(const uint32 x, const uint32 y) const
 uint32 Grid::posToIndex(const Position& pos) const
 {
     return posToIndex(pos.x, pos.y);
-}
-
-Position Grid::indexToPos(const uint32 index) const
-{
-    return Position(index % c_dim.width, index / c_dim.width);
 }
