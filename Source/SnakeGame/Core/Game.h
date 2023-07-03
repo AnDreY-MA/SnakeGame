@@ -37,7 +37,7 @@ private:
     bool m_gameOver{false};
     uint32 m_score{0};
 
-    GameplayEventCallback m_gameplayEventCallback;
+    TArray<GameplayEventCallback> m_gameplayEventCallback;
 
     void updateGrid();
     bool updateTime(float deltaSeconds);

@@ -193,11 +193,12 @@ void ASG_GameMode::SubscribeOnGameEvents()
 {
     using namespace SnakeGame;
 
-    Game->subscribeOnGameplayEvent([&](GameplayEvent Event)
+    Game->subscribeOnGameplayEvent(
+        [&](GameplayEvent Event)
     {
         switch (Event)
         {
-            case GameplayEvent::CameOver:
+            case GameplayEvent::GameOver:
                 UE_LOG(LogSnakeGameMode, Display, TEXT("--------GAME OVER--------"));
                 UE_LOG(LogSnakeGameMode, Display, TEXT("--------SCORE: %i--------"), Game->getScore());
                 SnakeVisual->Explode();

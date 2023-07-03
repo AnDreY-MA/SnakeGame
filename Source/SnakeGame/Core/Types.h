@@ -83,7 +83,7 @@ public:
 
 enum class GameplayEvent
 {
-    CameOver = 0,
+    GameOver = 0,
     GameCompleted,
     FoodTaken
 };

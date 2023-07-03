@@ -1,12 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Core/Game.h"
+#include "Game.h"
 
 #include "Snake.h"
-#include "Core/Grid.h"
-#include "Core/Snake.h"
-#include "Core/Food.h"
+#include "Grid.h"
+#include "Food.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogGame, All, All);
 
@@ -32,6 +31,7 @@ void Game::update(const float deltaSeconds, const Input& input)
     if(died())
     {
         m_gameOver = true;
+        dispatchEvent(GameplayEvent::GameOver);
 
         return;
     }
@@ -41,7 +41,7 @@ void Game::update(const float deltaSeconds, const Input& input)
     {
         ++m_score;
         m_snake->increase();
-        m_gameplayEventCallback(GameplayEvent::FoodTaken);
+        dispatchEvent(GameplayEvent::FoodTaken);
         generateFood();
     }
 
@@ -79,7 +79,7 @@ void Game::generateFood()
     else
     {
         m_gameOver = true;
-        m_gameplayEventCallback(GameplayEvent::GameCompleted);
+        dispatchEvent(GameplayEvent::GameCompleted);
         //UE_LOG(LogGame, Display, TEXT("--------GAME COMPLETED--------"));
     }
     
@@ -92,11 +92,17 @@ bool Game::foodTaken() const
 
 void Game::dispatchEvent(GameplayEvent Event)
 {
-    m_gameplayEventCallback(Event);
+    for (const auto& callback : m_gameplayEventCallback)
+    {
+        if(callback)
+        {
+            callback(Event);
+        }
+    }
 
 }
 
 void Game::subscribeOnGameplayEvent(GameplayEventCallback callback)
 {
-    m_gameplayEventCallback = callback;
+    m_gameplayEventCallback.Add(callback);
 }
